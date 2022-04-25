@@ -6,19 +6,71 @@
 //
 
 import UIKit
-
 class ViewController: UIViewController {
+    @IBOutlet weak var searchBar: UISearchBar!
+    @IBOutlet weak var tableView: UITableView!
     
     let pokeViewModel: PokeViewModel = PokeViewModel()
-
+    
+    var filterData : [ Result] = []
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        pokeViewModel.getDataFromAPI()
-        print("data")
-        print(pokeViewModel.data)
+        Task {
+            await setUpData()
+        }
+       setUpView()
     }
-
-
+    
+    func setUpData() async {
+        await pokeViewModel.getDataFromAPI()
+        filterData = pokeViewModel.pokemons
+        tableView.reloadData()
+    }
+    
+    func setUpView(){
+        tableView.delegate = self
+        tableView.dataSource = self
+        searchBar.delegate = self
+    }
 }
+
+// creamos una extension del viewController
+
+extension ViewController : UITableViewDelegate , UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return filterData.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell  = tableView.dequeueReusableCell(withIdentifier: "cell")!
+        cell.textLabel?.text = filterData[indexPath.row].name.capitalized
+        cell.imageView?.image = HelperImage.setImage(id: HelperString.getIdFromUrl(url: filterData[indexPath.row].url))
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(filterData[indexPath.row].name)
+    }
+}
+
+
+
+// extension para mi search
+
+extension ViewController : UISearchBarDelegate{
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        filterData = searchText.isEmpty
+        ? pokeViewModel.pokemons
+        : pokeViewModel.pokemons.filter({(pokemon : Result) -> Bool in
+            return pokemon.name.range(of: searchText, options : .caseInsensitive, range:nil, locale: nil ) != nil
+    })
+    tableView.reloadData()
+    }
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.endEditing(true)
+    }
+}
+
 
