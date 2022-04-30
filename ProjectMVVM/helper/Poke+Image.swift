@@ -11,8 +11,15 @@ import Foundation
 class HelperImage {
     
     static func setImage(id: String) -> UIImage? {
-        let url = URL(string: getUrlImage(id: id))
-        let data = try? Data(contentsOf: url!)
+        return convertImageFromURL(url: getUrlImage(id: id))
+    }
+    
+    static func setImageFromUrl(url : String) -> UIImage? {
+        return convertImageFromURL(url: url)
+    }
+    
+    static func convertImageFromURL(url : String) -> UIImage? {
+        let data = try? Data(contentsOf: HelperString.getURLFromString(url:url)!)
         
         if let imageData = data {
             return  UIImage(data: imageData)
@@ -21,8 +28,8 @@ class HelperImage {
         
         return nil
     }
-    
     static func getUrlImage(id: String) -> String{
         return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(id).png"
     }
+
 }
